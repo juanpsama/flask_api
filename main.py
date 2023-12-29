@@ -1,7 +1,20 @@
 from flask import Flask
 from flask.json import jsonify
+from flask_sqlalchemy import SQLAlchemy
+
+from models import User, Product, Categories, db
 
 app = Flask(__name__)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cake_store.db'
+db.init_app(app)
+
+
+with app.app_context():
+    
+    #If you define models in other modules, you must import them before calling create_all, otherwise SQLAlchemy will not know about them.
+    db.create_all()
+
 
 @app.get('/')
 def get_data():
