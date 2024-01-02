@@ -18,6 +18,9 @@ with app.app_context():
     #If you define models in other modules, you must import them before calling create_all, otherwise SQLAlchemy will not know about them.
     db.create_all()
 
+#TODO: make auth with jwt
+#TODO: make a docs page swagger
+
 
 @app.post('/categories')
 def post_categories():
@@ -44,27 +47,9 @@ def get_categories():
     # Creates a list with all objects transform in to dictionaries
     results_list = [category.to_dict() for category in categories]
     
-    return jsonify(results_list)
+    return jsonify(results_list),200
 
 # CRUD products
-@app.get('/products')
-def get_all_products():
-    result = db.session.execute(db.select(Product))
-    products = result.scalars().all()
-
-    # Creates a list with all objects transform in to dictionaries
-    results_list = [product.to_dict() for product in products]
-    
-    return jsonify(results_list)
-
-@app.get('/products/<int:product_id>')
-def get_product(product_id):
-    try:
-        product = db.get_or_404(Product, product_id)
-    except:
-        return jsonify({"error" : "product not found with that id"}), 404
-    
-    return jsonify(product.to_dict())
 
 @app.post('/products')
 def post_data():
@@ -85,10 +70,41 @@ def post_data():
 
     return jsonify({'message' : 'product created succesfully'}), 201
 
-@app.delete('/')
-def delete_data():
-    return jsonify({'message' : 'hola desde delete'})
+@app.get('/products')
+def get_all_products():
+    #TODO: accept queries to filter data in get         
+    result = db.session.execute(db.select(Product))
+    products = result.scalars().all()
 
+    # Creates a list with all objects transform in to dictionaries
+    results_list = [product.to_dict() for product in products]
+    
+    return jsonify(results_list),200
+
+@app.get('/products/<int:product_id>')
+def get_product(product_id):
+    try:
+        product = db.get_or_404(Product, product_id)
+    except:
+        return jsonify({"error" : "product not found with that id"}), 404
+    
+    return jsonify(product.to_dict()),200
+
+
+@app.delete('/products/<int:product_id>')
+def delete_product(product_id):
+    try:
+        product = db.get_or_404(Product, product_id)
+    except:
+        return jsonify({"error" : "product not found with that id"}), 404
+    
+    # Using the db session to delete the product from the database
+    db.session.delete(product)
+    db.session.commit()    
+    return jsonify({'message' : 'product deleted correctly'}), 200
+
+
+#TODO: Make put and patch entry
 @app.put('/')
 def put_data():
     return jsonify({'message' : 'hola desde put'})
@@ -96,8 +112,6 @@ def put_data():
 @app.patch('/')
 def patch_data():
     return jsonify({'message' :  'hola desde patch'})
-
-
 
 if __name__=='__main__':
     app.run(debug=True)
